@@ -2,11 +2,11 @@ import pandas as pd
 import os
 from datetime import datetime
 
-# File CSV untuk menyimpan data
+
 USER_FILE = 'users.csv'
-MARKETPLACE_FILE = 'Marketplace.csv'  # Untuk menyimpan daftar barang yang dijual
-TRANSACTION_FILE = 'pembelian.csv'  # Untuk mencatat riwayat pembelian
-STOCK_FILE = 'Stok.csv'  # Untuk menyimpan informasi stok barang
+MARKETPLACE_FILE = 'Marketplace.csv' 
+TRANSACTION_FILE = 'pembelian.csv'  
+STOCK_FILE = 'Stok.csv'  
 
 
 def clear():
@@ -15,13 +15,11 @@ def clear():
 def pause():
     input('Tekan enter untuk lanjut')
 
-# Fungsi untuk login
 def login():
     clear()
     print("LOGIN\n")
     username = input("Username: ")
     password = input("Password: ")
-    
     
     if os.path.exists(USER_FILE):
         df = pd.read_csv(USER_FILE)
@@ -33,45 +31,43 @@ def login():
         print("Login gagal! Cek username dan password.")
         return None
 
-# Fungsi untuk sign in (mendaftar pengguna baru)
+
 def sign_in():
     clear()
     username = input("Username baru: ")
     password = input("Password baru: ")
     
-    # Memilih role dengan input angka
+
     print("Pilih role:")
     print("1. Supplier")
-    print("2. Warehouse")
-    print("3. Purchasing")
+    print("2. Admin")
     
-    role_choice = input("Masukkan nomor role (1/2/3): ")
+    role_choice = input("Masukkan nomor role (1/2): ")
     
     role_mapping = {
         '1': 'supplier',
-        '2': 'warehouse',
-        '3': 'purchasing'
+        '2': 'admin',
     }
-    #role mapping dict
+    #role mapping pake dict
     
-    role = role_mapping.get(role_choice)
+    role = role_mapping.get(role_choice) # buat dapet rolenya dengan key
     if not role:
-        print("Role tidak valid! Silakan pilih antara 1, 2, atau 3.")
+        print("Role tidak valid! Silakan pilih antara 1 atau 2.")
         return
 
-    # Cek apakah username sudah ada
+    
     if os.path.exists(USER_FILE):
         df = pd.read_csv(USER_FILE)
         if username in df['Username'].values:
             print("Username sudah terdaftar! Silakan gunakan username lain.")
             return
 
-    # Jika username belum ada, tambahkan ke file
+    # kalau blum ada
     new_user = pd.DataFrame([[username, password, role]], columns=['Username', 'Password', 'Role'])
     new_user.to_csv(USER_FILE, mode='a', header=not os.path.exists(USER_FILE), index=False)
     print("Pendaftaran berhasil! Anda sekarang dapat login.")
 
-# Fungsi utama
+
 def main():
     clear()
     while True:
@@ -85,11 +81,9 @@ def main():
         if choice == '1':
             role = login()
             if role == 'supplier':
-                supplier_dashboard()  # Fungsi untuk dashboard supplier
-            elif role == 'warehouse':
-                warehouse_dashboard()  # Fungsi untuk dashboard warehouse
-            elif role == 'purchasing':
-                buy_item()  # Jika role adalah purchasing, langsung tawarkan untuk membeli barang
+                supplier_dashboard()  
+            elif role == 'admin':
+                admin_dashboard()
         elif choice == '2':
             sign_in()
         elif choice == '3':
@@ -97,8 +91,7 @@ def main():
             break
         else:
             print("Pilihan tidak valid.")
-
-# Fungsi untuk dashboard supplier
+            
 def supplier_dashboard():
     clear()
     
@@ -133,15 +126,15 @@ def add_item_to_marketplace():
     nama_barang = input("Nama Barang: ")
     harga = float(input("Harga: "))
     
-    # Cek apakah file sudah ada
+    # Cek apakah file csv dah ada atau blum
     if not os.path.exists(MARKETPLACE_FILE):
         # Jika belum ada, buat DataFrame dengan kolom yang diperlukan
         df = pd.DataFrame(columns=['Nama Barang', 'Harga'])
     else:
-        # Jika sudah ada, baca file CSV
+        # kalau ada, baca file CSV
         df = pd.read_csv(MARKETPLACE_FILE)
 
-    # Tambahkan item baru ke DataFrame
+    # tambah item baru yang diinput ke DataFrame
     new_item = pd.DataFrame([[nama_barang, harga]], columns=['Nama Barang', 'Harga'])
     df = pd.concat([df, new_item], ignore_index=True)
 
@@ -150,29 +143,36 @@ def add_item_to_marketplace():
 
     print(f"{nama_barang} berhasil ditambahkan ke Marketplace dengan harga {harga}.")
 
-# Fungsi untuk dashboard warehouse
-def warehouse_dashboard():
+
+def admin_dashboard():
     clear()
     while True:
-        print("\nDashboard Warehouse:")
+        print("\nDashboard Admin:")
         print("1. Pakai Stok")
-        print("2. Lihat Stok Barang")
-        print("3. Keluar")
+        print("2. Lihat Stok")
+        print("3. Beli Barang")
+        print("4. Riwayat Pembelian")
+        print("5. Keluar")
         
         choice = input("Pilih menu: ")
         
         if choice == '1':
-            use_stock()
+            pakai_stok()
         elif choice == '2':
-            view_stock()
+            lihat_stok()
         elif choice == '3':
+            beli_item
+        elif choice == '4':
+            riwayat_pembelian()
+        elif choice == '5':
             print("Keluar dari dashboard warehouse.")
             break
         else:
             print("Pilihan tidak valid.")
+            clear()
 
 # Fungsi untuk melihat stok barang
-def view_stock():
+def lihat_stok():
     clear()
     if not os.path.exists(STOCK_FILE):
         print("Belum ada data stok barang.")
@@ -184,15 +184,13 @@ def view_stock():
     clear()
     print(df)
 
-def use_stock():
+def pakai_stok():
     clear()
     if not os.path.exists(STOCK_FILE):
         print("Belum ada data stok barang.")
         return
-    
-    # Tampilkan daftar barang yang ada
-    print(view_stock())
-    
+    print(lihat_stok())
+
     nama_barang = input("Masukkan Kode Barang yang ingin digunakan: ")
     jumlah = int(input("Jumlah yang ingin digunakan: "))
     
@@ -211,31 +209,9 @@ def use_stock():
     else:
         print("Kode barang tidak ditemukan.")
 
-def purchasing_dashboard():
-    clear()
-    while True:
-        print("\nDashboard Purcchasing:")
-        print("1. Beli Barang")
-        print("2. Lihat Stok Barang")
-        print("3. Riwayat Pembelian")
-        print("4. Keluar")
-        
-        choice = input("Pilih menu: ")
-        
-        if choice == '1':
-            buy_item()
-        elif choice == '2':
-            view_stock()
-        elif choice == '3':
-            record_transaction()
-        elif choice == '4':
-            print("Keluar dari dashboard warehouse.")
-            break
-        else:
-            print("Pilihan tidak valid.")
 
 # Fungsi untuk membeli barang
-def buy_item():
+def beli_item():
     clear()
     
     # Cek apakah file stok sudah ada
@@ -244,10 +220,9 @@ def buy_item():
         stock_df = pd.DataFrame(columns=['Nama Barang', 'Jumlah'])
         stock_df.to_csv(STOCK_FILE, index=False)  # Simpan DataFrame kosong ke file CSV
     
-    # Jika sudah ada, baca file CSV
     stock_df = pd.read_csv(STOCK_FILE)
     
-    # Cek apakah file marketplace sudah ada
+    # Cek apa file sudah ada
     if not os.path.exists(MARKETPLACE_FILE):
         print("Belum ada barang yang dijual.")
         return
@@ -256,7 +231,6 @@ def buy_item():
     print("Daftar Barang yang Dijual:")
     print(marketplace_df)
     
-    # Ambil input dari pengguna
     nama_barang = input("Masukkan Nama Barang yang ingin dibeli: ").strip()
     
     try:
@@ -265,7 +239,7 @@ def buy_item():
         print("Jumlah harus berupa angka.")
         return
     
-    # Cek apakah barang ada di marketplace
+    # Cek apa barang ada di mp
     if nama_barang in marketplace_df['Nama Barang'].values:
         harga = marketplace_df.loc[marketplace_df['Nama Barang'] == nama_barang, 'Harga'].values[0]
         total = harga * quantity
@@ -275,20 +249,20 @@ def buy_item():
             # Jika barang sudah ada, tambahkan jumlah stok
             stock_df.loc[stock_df['Nama Barang'] == nama_barang, 'Jumlah'] += quantity
         else:
-            # Jika barang belum ada, tambahkan ke stok
+            # kalau item ga ada, tambah ke stok
             new_item = pd.DataFrame([[nama_barang, quantity]], columns=['Nama Barang', 'Jumlah'])
             stock_df = pd.concat([stock_df, new_item], ignore_index=True)
 
-        # Simpan kembali DataFrame ke file CSV
+       
         stock_df.to_csv(STOCK_FILE, index=False)
         
         # Catat transaksi
-        record_transaction(nama_barang, quantity, harga, total)
+        rekam_transaksi(nama_barang, quantity, harga, total)
         print(f"Anda telah membeli {quantity} {nama_barang} dengan total biaya {total}.")
     else:
         print("Barang tidak ditemukan di Marketplace.")
-# Fungsi untuk mencatat transaksi pembelian
-def record_transaction(nama_barang,quantity,harga,total):
+
+def rekam_transaksi(nama_barang,quantity,harga,total):
     clear()
     new_transaction = pd.DataFrame([[datetime.now().strftime("%Y-%m-%d %H:%M"), nama_barang, quantity, harga, total]], 
                                     columns=['Tanggal', 'Nama Barang', 'Kuantitas', 'Harga', 'Total'])
@@ -300,7 +274,7 @@ def riwayat_pembelian():
     riwayat = pd.read_csv(TRANSACTION_FILE)
     print(riwayat)
 
-# Fungsi utama
+
 def main():
     clear()
     while True:
@@ -315,10 +289,8 @@ def main():
             role = login()
             if role == 'supplier':
                 supplier_dashboard()
-            elif role == 'warehouse':
-                warehouse_dashboard()
-            elif role == 'purchasing':
-                purchasing_dashboard() # Jika role adalah purchasing, langsung tawarkan untuk membeli barang
+            elif role == 'admin':
+                admin_dashboard()
         elif choice == '2':
             sign_in()
         elif choice == '3':
