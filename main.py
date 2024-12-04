@@ -3,10 +3,11 @@ import os
 from datetime import datetime
 
 
-USER_FILE = 'users.csv'
-MARKETPLACE_FILE = 'Marketplace.csv' 
-TRANSACTION_FILE = 'pembelian.csv'  
-STOCK_FILE = 'Stok.csv'  
+file_user = 'users.csv'
+file_marketplace = 'Marketplace.csv' 
+file_transaksi = 'transaksi.csv'  
+file_stok = 'stok.csv'  
+file_stok_keluar = 'riwayat_pemakaian.csv'
 
 
 def clear():
@@ -21,8 +22,8 @@ def login():
     username = input("Username: ")
     password = input("Password: ")
     
-    if os.path.exists(USER_FILE):
-        df = pd.read_csv(USER_FILE)
+    if os.path.exists(file_user):
+        df = pd.read_csv(file_user)
         user = df[(df['Username'] == username) & (df['Password'] == password)]
         if not user.empty:
             print(f"Login berhasil! Selamat datang, {user['Role'].values[0]}!")
@@ -56,15 +57,15 @@ def sign_in():
         return
 
     
-    if os.path.exists(USER_FILE):
-        df = pd.read_csv(USER_FILE)
+    if os.path.exists(file_user):
+        df = pd.read_csv(file_user)
         if username in df['Username'].values:
             print("Username sudah terdaftar! Silakan gunakan username lain.")
             return
 
     # kalau blum ada
     new_user = pd.DataFrame([[username, password, role]], columns=['Username', 'Password', 'Role'])
-    new_user.to_csv(USER_FILE, mode='a', header=not os.path.exists(USER_FILE), index=False)
+    new_user.to_csv(file_user, mode='a', header=not os.path.exists(file_user), index=False)
     print("Pendaftaran berhasil! Anda sekarang dapat login.")
 
 
@@ -115,7 +116,7 @@ def supplier_dashboard():
 
 def marketplace():
     clear()
-    df = pd.read_csv(MARKETPLACE_FILE)
+    df = pd.read_csv(file_marketplace)
     print("Daftar Barang yang Dijual:")
     print(df)
     input('enter untuk kembali')
@@ -127,19 +128,19 @@ def add_item_to_marketplace():
     harga = float(input("Harga: "))
     
     # Cek apakah file csv dah ada atau blum
-    if not os.path.exists(MARKETPLACE_FILE):
+    if not os.path.exists(file_marketplace):
         # Jika belum ada, buat DataFrame dengan kolom yang diperlukan
         df = pd.DataFrame(columns=['Nama Barang', 'Harga'])
     else:
         # kalau ada, baca file CSV
-        df = pd.read_csv(MARKETPLACE_FILE)
+        df = pd.read_csv(file_marketplace)
 
     # tambah item baru yang diinput ke DataFrame
     new_item = pd.DataFrame([[nama_barang, harga]], columns=['Nama Barang', 'Harga'])
     df = pd.concat([df, new_item], ignore_index=True)
 
     # Simpan kembali DataFrame ke file CSV
-    df.to_csv(MARKETPLACE_FILE, index=False)
+    df.to_csv(file_marketplace, index=False)
 
     print(f"{nama_barang} berhasil ditambahkan ke Marketplace dengan harga {harga}.")
 
@@ -148,8 +149,8 @@ def admin_dashboard():
     clear()
     while True:
         print("\nDashboard Admin:")
-        print("1. Pakai Stok")
-        print("2. Lihat Stok")
+        print("1. Lihat Stok")
+        print("2. Pakai Stok")
         print("3. Beli Barang")
         print("4. Riwayat Pembelian")
         print("5. Keluar")
@@ -157,11 +158,11 @@ def admin_dashboard():
         choice = input("Pilih menu: ")
         
         if choice == '1':
-            pakai_stok()
-        elif choice == '2':
             lihat_stok()
+        elif choice == '2':
+            pakai_stok()
         elif choice == '3':
-            beli_item
+            beli_item()
         elif choice == '4':
             riwayat_pembelian()
         elif choice == '5':
@@ -171,14 +172,13 @@ def admin_dashboard():
             print("Pilihan tidak valid.")
             clear()
 
-# Fungsi untuk melihat stok barang
 def lihat_stok():
     clear()
-    if not os.path.exists(STOCK_FILE):
+    if not os.path.exists(file_stok):
         print("Belum ada data stok barang.")
         return
     
-    df = pd.read_csv(STOCK_FILE)
+    df = pd.read_csv(file_stok)
     print("Kode Barang | Nama Barang | Jumlah")
     print("-------------------------------------")
     clear()
@@ -186,7 +186,7 @@ def lihat_stok():
 
 def pakai_stok():
     clear()
-    if not os.path.exists(STOCK_FILE):
+    if not os.path.exists(file_stok):
         print("Belum ada data stok barang.")
         return
     print(lihat_stok())
@@ -194,20 +194,24 @@ def pakai_stok():
     nama_barang = input("Masukkan Kode Barang yang ingin digunakan: ")
     jumlah = int(input("Jumlah yang ingin digunakan: "))
     
-    df = pd.read_csv(STOCK_FILE)
+    df = pd.read_csv(file_stok)
     
     if nama_barang in df['Nama Barang'].values:
         # Cek apakah jumlah yang diminta tersedia
-        available_stock = df.loc[df['Nama Barang'] == nama_barang, 'Jumlah'].values[0]
-        if available_stock >= jumlah:
+        stok_tersedia = df.loc[df['Nama Barang'] == nama_barang, 'Jumlah'].values[0]
+        if stok_tersedia >= jumlah:
             # Kurangi jumlah stok
             df.loc[df['Nama Barang'] == nama_barang, 'Jumlah'] -= jumlah
-            df.to_csv(STOCK_FILE, index=False)
+            df.to_csv(file_stok, index=False)
+            
             print(f"Stok barang {nama_barang} berhasil digunakan. Sisa stok: {df.loc[df['Nama Barang'] == nama_barang, 'Jumlah'].values[0]}")
+            
+            riwayat_pemakaian(nama_barang,jumlah)
         else:
-            print(f"Jumlah yang diminta melebihi stok yang tersedia. Stok saat ini: {available_stock}.")
+            print(f"Jumlah yang diminta melebihi stok yang tersedia. Stok saat ini: {stok_tersedia}.")
     else:
         print("Kode barang tidak ditemukan.")
+    
 
 
 # Fungsi untuk membeli barang
@@ -215,19 +219,19 @@ def beli_item():
     clear()
     
     # Cek apakah file stok sudah ada
-    if not os.path.exists(STOCK_FILE):
+    if not os.path.exists(file_stok):
         # Jika belum ada, buat DataFrame dengan kolom yang diperlukan dan simpan ke file CSV
         stock_df = pd.DataFrame(columns=['Nama Barang', 'Jumlah'])
-        stock_df.to_csv(STOCK_FILE, index=False)  # Simpan DataFrame kosong ke file CSV
+        stock_df.to_csv(file_stok, index=False)  # Simpan DataFrame kosong ke file CSV
     
-    stock_df = pd.read_csv(STOCK_FILE)
+    stock_df = pd.read_csv(file_stok)
     
     # Cek apa file sudah ada
-    if not os.path.exists(MARKETPLACE_FILE):
+    if not os.path.exists(file_marketplace):
         print("Belum ada barang yang dijual.")
         return
     
-    marketplace_df = pd.read_csv(MARKETPLACE_FILE)
+    marketplace_df = pd.read_csv(file_marketplace)
     print("Daftar Barang yang Dijual:")
     print(marketplace_df)
     
@@ -254,7 +258,7 @@ def beli_item():
             stock_df = pd.concat([stock_df, new_item], ignore_index=True)
 
        
-        stock_df.to_csv(STOCK_FILE, index=False)
+        stock_df.to_csv(file_stok, index=False)
         
         # Catat transaksi
         rekam_transaksi(nama_barang, quantity, harga, total)
@@ -267,11 +271,19 @@ def rekam_transaksi(nama_barang,quantity,harga,total):
     new_transaction = pd.DataFrame([[datetime.now().strftime("%Y-%m-%d %H:%M"), nama_barang, quantity, harga, total]], 
                                     columns=['Tanggal', 'Nama Barang', 'Kuantitas', 'Harga', 'Total'])
     
-    new_transaction.to_csv(TRANSACTION_FILE, mode='a', header=not os.path.exists(TRANSACTION_FILE), index=False)
+    new_transaction.to_csv(file_transaksi, mode='a', header=not os.path.exists(file_transaksi), index=False)
     print('Transaksi pembelian berhasil dicatat.')
 
+def riwayat_pemakaian(nama_barang,quantity):
+    clear()
+    new_out_stock = pd.DataFrame([[datetime.now().strftime("%Y-%m-%d %H:%M"), nama_barang, quantity]], 
+                                    columns=['Tanggal', 'Nama Barang', 'Kuantitas'])
+    
+    new_out_stock.to_csv(file_stok_keluar, mode='a', header=not os.path.exists(file_stok_keluar), index=False)
+    print('Stok keluar berhasil dicatat.')
+
 def riwayat_pembelian():
-    riwayat = pd.read_csv(TRANSACTION_FILE)
+    riwayat = pd.read_csv(file_transaksi)
     print(riwayat)
 
 
