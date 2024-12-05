@@ -8,9 +8,17 @@ file_user = 'Users.csv'
 file_marketplace = 'Marketplace.csv' 
 file_transaksi = 'Transaksi.csv'  
 file_stok = 'Stok.csv'  
-file_stok_keluar = 'Riwayat_pemakaian.csv'
+file_pemakaian = 'Riwayat_pemakaian.csv'
 
-
+def header():
+    panjang = '================================='
+    print(panjang)
+    sisi = len(panjang) // 2 -5
+    spasi = sisi*('-')
+    print(spasi,'AGROSTOCK',spasi)
+    print(panjang)
+    
+    
 def clear():
     os.system('cls')
     
@@ -115,7 +123,7 @@ def supplier_dashboard():
         print("1. Lihat Marketplace")
         print("2. Tambah Barang yang Dijual")
         print("3. Update Barang yang Dijual")
-        print("4. Keluar")
+        print("0. Keluar")
         
         choice = input("Pilih menu: ")
         
@@ -125,7 +133,7 @@ def supplier_dashboard():
             add_item_to_marketplace()
         elif choice == '3':
             update_item()
-        elif choice == '4':
+        elif choice == '0':
             print("Keluar dari dashboard supplier.")
             break
         else:
@@ -173,7 +181,7 @@ def update_item():
     df = pd.read_csv(file_marketplace)
     
     print("Daftar Barang yang Dijual:")
-    print(marketplace())
+    marketplace()
     
     nama_barang = input("Masukkan Nama Barang yang ingin diupdate: ").strip()
     
@@ -220,7 +228,8 @@ def admin_dashboard():
         print("2. Pakai Stok")
         print("3. Beli Barang")
         print("4. Riwayat Pembelian")
-        print("5. Keluar")
+        print("5. Riwayat Pemakaian")
+        print("0. Keluar")
         
         choice = input("Pilih menu: ")
         
@@ -233,6 +242,8 @@ def admin_dashboard():
         elif choice == '4':
             riwayat_pembelian()
         elif choice == '5':
+            riwayat_pemakaian()
+        elif choice == '0':
             print("Keluar dari dashboard warehouse.")
             pause()
             break
@@ -245,7 +256,7 @@ def stok():
     clear()
     df = pd.read_csv(file_stok)
     df.to_csv(file_marketplace, index=False)
-    print("Daftar Barang yang Dijual:")
+    print("Daftar Barang :")
     # df.to_string(index=False)
     print(tabulate(df, headers='keys', tablefmt='fancy_grid', showindex=False))
     
@@ -257,19 +268,20 @@ def lihat_stok():
         return
     
     df = pd.read_csv(file_stok)
-    print(" Nama Barang | Jumlah")
-    print("-----------------------")
-    clear()
-    print(stok())
+    # print(" Nama Barang | Jumlah")
+    # print("-----------------------")
+    stok()
+    
 
 def pakai_stok():
     clear()
     if not os.path.exists(file_stok):
         print("Belum ada data stok barang.")
         return
-    print(lihat_stok())
+    
+    stok()
 
-    nama_barang = input("Masukkan Kode Barang yang ingin digunakan: ")
+    nama_barang = input("Masukkan Nama Barang yang ingin digunakan: ")
     jumlah = int(input("Jumlah yang ingin digunakan: "))
     
     df = pd.read_csv(file_stok)
@@ -288,7 +300,7 @@ def pakai_stok():
         else:
             print(f"Jumlah yang diminta melebihi stok yang tersedia. Stok saat ini: {stok_tersedia}.")
     else:
-        print("Kode barang tidak ditemukan.")
+        print("Barang tidak ditemukan.")
     
 
 
@@ -310,7 +322,7 @@ def beli_item():
     
     marketplace_df = pd.read_csv(file_marketplace)
     print("Daftar Barang yang Dijual:")
-    print(marketplace())
+    marketplace()
     
     nama_barang = input("Masukkan Nama Barang yang ingin dibeli: ").strip()
     
@@ -351,22 +363,33 @@ def rekam_transaksi(nama_barang,quantity,harga,total):
     new_transaction.to_csv(file_transaksi, mode='a', header=not os.path.exists(file_transaksi), index=False)
     print('Transaksi pembelian berhasil dicatat.')
 
-def riwayat_pemakaian(nama_barang,quantity):
+def rekam_pemakaian(nama_barang,quantity):
     clear()
     new_out_stock = pd.DataFrame([[datetime.now().strftime("%Y-%m-%d %H:%M"), nama_barang, quantity]], 
                                     columns=['Tanggal', 'Nama Barang', 'Kuantitas'])
     
-    new_out_stock.to_csv(file_stok_keluar, mode='a', header=not os.path.exists(file_stok_keluar), index=False)
+    new_out_stock.to_csv(file_pemakaian, mode='a', header=not os.path.exists(file_pemakaian), index=False)
     print('Stok keluar berhasil dicatat.')
 
+def riwayat_pemakaian():
+    df = pd.read_csv(file_pemakaian)
+    df.to_csv(file_pemakaian, index=False)
+    print("Daftar Barang yang digunakan")
+    # df.to_string(index=False)
+    print(tabulate(df, headers='keys', tablefmt='fancy_grid', showindex=False))
+
 def riwayat_pembelian():
-    riwayat = pd.read_csv(file_transaksi)
-    print(riwayat)
+    df = pd.read_csv(file_transaksi)
+    df.to_csv(file_transaksi, index=False)
+    print("Daftar Barang yang Dibeli:")
+    # df.to_string(index=False)
+    print(tabulate(df, headers='keys', tablefmt='fancy_grid', showindex=False))
 
 
 def main():
     while True:
         clear()
+        header()
         print("\nSelamat datang di sistem manajemen barang!")
         print("1. Login")
         print("2. Daftar")
