@@ -39,16 +39,28 @@ def login():
             pause()
             return user['Role'].values[0]
         print("Login gagal! Cek username dan password.")
-        return None
+        pause()
+        return
 
 
-def sign_in():
+def sign_up():
     clear()
     header()
     username = input("Username baru: ")
     password = input("Password baru: ")
     
-
+    if os.path.exists(file_user):
+        df = pd.read_csv(file_user)
+        if username in df['Username'].values:
+            print("Username sudah terdaftar! Silakan gunakan username lain.")
+            pause()
+            return
+        
+        if username == '' or password == '':
+            print("Username atau password tidak boleh kosong.")
+            pause()
+            return
+    
     print("Pilih role:")
     print("1. Supplier")
     print("2. Admin")
@@ -62,15 +74,17 @@ def sign_in():
     #role mapping pake dict
     
     if role_choice == '2':
-        sandi_admin = 3212
-        input_sandi = int(input('Masukkan sandi untuk menjadi admin: '))
+        sandi_admin = '3212'
+        input_sandi = input('Masukkan sandi untuk menjadi admin: ')
         
-        if sandi_admin == input_sandi:
+        if input_sandi == sandi_admin:
             role = role_mapping.get(role_choice) # buat dapet rolenya dengan key
             
-        elif sandi_admin != input_sandi:
-            input('Sandi salah, kembali ke login, enter untuk lanjut')
-            login()
+        else:
+            print('Sandi salah, kembali ke login.')
+            pause()
+            return
+
     else:
         role = role_mapping.get(role_choice) # buat dapet rolenya dengan key
         if not role:
@@ -79,11 +93,6 @@ def sign_in():
             return
 
     
-    if os.path.exists(file_user):
-        df = pd.read_csv(file_user)
-        if username in df['Username'].values:
-            print("Username sudah terdaftar! Silakan gunakan username lain.")
-            return
 
     # kalau blum ada
     new_user = pd.DataFrame([[username, password, role]], columns=['Username', 'Password', 'Role'])
@@ -95,12 +104,14 @@ def sign_in():
 def ubah_username_password():
     clear()
     header()
+    print('EDIT AKUN')
     df = pd.read_csv(file_user)
     
     username = input("Masukkan Username Anda: ")
     
     if username not in df['Username'].values:
         print("Username tidak ditemukan.")
+        pause()
         return
     
     current_password = input("Masukkan Password Saat Ini: ")
@@ -108,11 +119,14 @@ def ubah_username_password():
     #konfirmasi pass
     if df.loc[df['Username'] == username, 'Password'].values[0] != current_password:
         print("Password saat ini salah. Tidak dapat mengubah username atau password.")
+        pause()
         return
     
     print("Apa yang ingin Anda ubah?")
     print("1. Username")
     print("2. Password")
+    print("0. Keluar")
+    
     
     choice = input("Masukkan nomor pilihan (1/2): ")
     
@@ -126,12 +140,21 @@ def ubah_username_password():
         
     elif choice == '2':
         new_password = input("Masukkan Password Baru: ")
+        if new_password == '':
+            print('password tidak boleh kosong')
+            pause()
+            ubah_username_password()
+            
         df.loc[df['Username'] == username, 'Password'] = new_password
         print("Password berhasil diubah.")
+    
+    elif choice == '0':
+        main()
         
     else:
         print("Pilihan tidak valid.")
-        return
+        pause()
+        ubah_username_password()
     
     # Simpan df ke csv
     df.to_csv(file_user, index=False)
@@ -158,7 +181,7 @@ def supplier_dashboard():
         elif choice == '3':
             update_item()
         elif choice == '0':
-            print("Keluar dari dashboard supplier.")
+            input("Keluar dari dashboard supplier.")
             break
         else:
             print("Pilihan tidak valid.")
@@ -183,14 +206,23 @@ def add_item_to_marketplace():
     clear()
     header()
     nama_barang = input("Nama Barang: ")
-    harga = float(input("Harga: "))
+    if nama_barang == '':
+        input('Nama tidak boleh kosong')
+        add_item_to_marketplace()
     
-    # Cek apakah file csv dah ada atau blum
+    try:
+        harga = float(input("Harga: "))
+    except:
+        print('harga hanya boleh berupa angka.')
+        pause()
+        add_item_to_marketplace()
+
+    
+    # Cek apakah file blum ada
     if not os.path.exists(file_marketplace):
         # Jika belum ada, buat DataFrame dengan kolom yang diperlukan
         df = pd.DataFrame(columns=['Nama Barang', 'Harga'])
     else:
-        # kalau ada, baca file CSV
         df = pd.read_csv(file_marketplace)
 
     # tambah item baru yang diinput ke DataFrame
@@ -202,6 +234,7 @@ def add_item_to_marketplace():
 
     print(f"{nama_barang} berhasil ditambahkan ke Marketplace dengan harga {harga}.")
     pause()
+    supplier_dashboard()
 
 def update_item():
     clear()
@@ -279,13 +312,15 @@ def admin_dashboard():
         
         else:
             print("Pilihan tidak valid.")
+            pause()
             clear()
+            
 
 def stok():
     clear()
     header()
     df = pd.read_csv(file_stok)
-    df.to_csv(file_marketplace, index=False)
+    df.to_csv(file_stok, index=False)
     print("Daftar Barang :")
     # df.to_string(index=False)
     print(tabulate(df, headers='keys', tablefmt='fancy_grid', showindex=False))
@@ -294,16 +329,12 @@ def stok():
 def lihat_stok():
     clear()
     header()
+    #kalo blum ada fileny
     if not os.path.exists(file_stok):
         print("Belum ada data stok barang.")
         return
-    
-    df = pd.read_csv(file_stok)
-    # print(" Nama Barang | Jumlah")
-    # print("-----------------------")
     stok()
     
-
 def pakai_stok():
     clear()
     header()
@@ -313,11 +344,20 @@ def pakai_stok():
     
     stok()
 
-    nama_barang = input("Masukkan Nama Barang yang ingin digunakan: ")
-    jumlah = int(input("Jumlah yang ingin digunakan: "))
-    
     df = pd.read_csv(file_stok)
     
+    nama_barang = input("Masukkan Nama Barang yang ingin digunakan: ")
+    if nama_barang == '':
+        print('Nama tidak boleh kosong.')
+        pause()
+        admin_dashboard()
+    try:
+        jumlah = int(input("Jumlah yang ingin digunakan: "))
+    except ValueError:
+        print("Jumlah harus berupa angka.")
+        pause()
+        return
+        
     if nama_barang in df['Nama Barang'].values:
         # Cek apakah jumlah yang diminta tersedia
         stok_tersedia = df.loc[df['Nama Barang'] == nama_barang, 'Jumlah'].values[0]
@@ -329,11 +369,13 @@ def pakai_stok():
             print(f"Stok barang {nama_barang} berhasil digunakan. Sisa stok: {df.loc[df['Nama Barang'] == nama_barang, 'Jumlah'].values[0]}")
             
             rekam_pemakaian(nama_barang,jumlah)
+            pause()
         else:
             print(f"Jumlah yang diminta melebihi stok yang tersedia. Stok saat ini: {stok_tersedia}.")
+            pause()
     else:
         print("Barang tidak ditemukan.")
-    
+        pause()
 
 
 # Fungsi untuk membeli barang
@@ -370,7 +412,7 @@ def beli_item():
         harga = marketplace_df.loc[marketplace_df['Nama Barang'] == nama_barang, 'Harga'].values[0]
         total = harga * quantity
         
-        # Cek apakah barang tersedia di stok
+        # Cek apakah barang tersedia di stok # buat masukin ke stok
         if nama_barang in stock_df['Nama Barang'].values:
             # kalau ada, tambah stok
             stock_df.loc[stock_df['Nama Barang'] == nama_barang, 'Jumlah'] += quantity
@@ -405,6 +447,7 @@ def rekam_pemakaian(nama_barang,quantity):
     print('Stok keluar berhasil dicatat.')
 
 def riwayat_pemakaian():
+    clear()
     header()
     df = pd.read_csv(file_pemakaian)
     df.to_csv(file_pemakaian, index=False)
@@ -413,6 +456,7 @@ def riwayat_pemakaian():
     print(tabulate(df, headers='keys', tablefmt='fancy_grid', showindex=False))
 
 def riwayat_pembelian():
+    clear()
     header()
     df = pd.read_csv(file_transaksi)
     df.to_csv(file_transaksi, index=False)
@@ -440,7 +484,7 @@ def main():
             elif role == 'admin':
                 admin_dashboard()
         elif choice == '2':
-            sign_in()
+            sign_up()
         elif choice == '3':
             ubah_username_password()
         elif choice == '0':
@@ -449,6 +493,5 @@ def main():
         else:
             input("Pilihan tidak valid. enter untuk lanjut")
 
-# Menjalankan program
-# if __name__ == "__main__": ##INI DIGUNAKAN KALAU FILE FILE PY LAIN DI IMPORT KE SINI(FILE MAIN)
+
 main()
