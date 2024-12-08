@@ -28,6 +28,7 @@ def pause():
 def login():
     clear()
     header()
+    print('LOG IN\n')
     username = input("Username: ")
     password = input("Password: ")
     
@@ -46,6 +47,7 @@ def login():
 def sign_up():
     clear()
     header()
+    print('SIGN UP\n')
     username = input("Username baru: ")
     password = input("Password baru: ")
     
@@ -105,7 +107,7 @@ def sign_up():
 def ubah_username_password():
     clear()
     header()
-    print('EDIT AKUN')
+    print('EDIT AKUN\n')
     df = pd.read_csv(file_user)
     
     username = input("Masukkan Username Anda: ")
@@ -137,6 +139,10 @@ def ubah_username_password():
             print("Username baru sudah terdaftar! Silakan gunakan username lain.")
             pause()
             return
+        if new_username == '':
+            print('username tidak boleh kosong')
+            pause()
+            return
         df.loc[df['Username'] == username, 'Username'] = new_username
         print(f"Username berhasil diubah dari {username} menjadi {new_username}.")
         
@@ -145,7 +151,7 @@ def ubah_username_password():
         if new_password == '':
             print('password tidak boleh kosong')
             pause()
-            ubah_username_password()
+            return
             
         df.loc[df['Username'] == username, 'Password'] = new_password
         print("Password berhasil diubah.")
@@ -168,7 +174,7 @@ def supplier_dashboard():
     while True:
         clear()
         header()
-        print("\nDashboard Supplier:")
+        print("\nDASHBOARD SUPPLIER:\n")
         print("1. Lihat Marketplace")
         print("2. Tambah Barang yang Dijual")
         print("3. Update Barang yang Dijual")
@@ -208,6 +214,7 @@ def lihat_marketplace():
 def add_item_to_marketplace():
     clear()
     header()
+    print('TAMBAH ITEM ke Marketplace\n')
     nama_barang = input("Nama Barang: ")
     if nama_barang == '':
         input('Nama tidak boleh kosong')
@@ -242,6 +249,7 @@ def add_item_to_marketplace():
 def update_item():
     clear()
     header()
+    print('UPDATE ITEM\n')
     df = pd.read_csv(file_marketplace)
     
     print("Daftar Barang yang Dijual:")
@@ -291,7 +299,7 @@ def admin_dashboard():
     clear()
     header()
     while True:
-        print("\nDashboard Admin:")
+        print("\nDASHBOARD ADMIN:\n")
         print("1. Lihat Stok")
         print("2. Pakai Stok")
         print("3. Beli Barang")
@@ -345,6 +353,7 @@ def lihat_stok():
 def pakai_stok():
     clear()
     header()
+    print('PAKAI STOK')
     if not os.path.exists(file_stok):
         print("Belum ada data stok barang.")
         pause()
@@ -396,7 +405,7 @@ def pakai_stok():
 def beli_item():
     clear()
     header()
-    
+    print('BELI ITEM')
     if not os.path.exists(file_stok):
         # kalau blum ada, df pake kolom
         stock_df = pd.DataFrame(columns=['Nama Barang', 'Jumlah'])
@@ -465,6 +474,7 @@ def rekam_pemakaian(nama_barang,quantity):
 def riwayat_pemakaian():
     clear()
     header()
+    print('RIWAYAT PEMAKAIAN')
     df = pd.read_csv(file_pemakaian)
     df.to_csv(file_pemakaian, index=False)
     print("Daftar Barang yang digunakan")
@@ -474,6 +484,7 @@ def riwayat_pemakaian():
 def riwayat_pembelian():
     clear()
     header()
+    print('RIWAYAT TRANSAKSI')
     df = pd.read_csv(file_transaksi)
     df.to_csv(file_transaksi, index=False)
     print("Daftar Barang yang Dibeli:")
