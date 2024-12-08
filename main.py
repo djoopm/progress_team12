@@ -134,6 +134,7 @@ def ubah_username_password():
         new_username = input("Masukkan Username Baru: ")
         if new_username in df['Username'].values:
             print("Username baru sudah terdaftar! Silakan gunakan username lain.")
+            pause()
             return
         df.loc[df['Username'] == username, 'Username'] = new_username
         print(f"Username berhasil diubah dari {username} menjadi {new_username}.")
@@ -185,6 +186,7 @@ def supplier_dashboard():
             break
         else:
             print("Pilihan tidak valid.")
+            pause()
 
 def marketplace():
     clear()
@@ -215,7 +217,7 @@ def add_item_to_marketplace():
     except:
         print('harga hanya boleh berupa angka.')
         pause()
-        add_item_to_marketplace()
+        return
 
     
     # Cek apakah file blum ada
@@ -249,6 +251,7 @@ def update_item():
     # Cek barang ada atau tdk
     if nama_barang not in df['Nama Barang'].values:
         print("Barang tidak ditemukan di marketplace.")
+        pause()
         return
 
     print("Apa yang ingin Anda ubah?")
@@ -271,9 +274,11 @@ def update_item():
             print(f"Harga barang {nama_barang} berhasil diubah menjadi {harga_baru}.")
         except ValueError:
             print("Harga harus berupa angka.")
+            pause()
             return
     else:
         print("Pilihan tidak valid.")
+        pause()
         return
     
     # Menyimpan kembali DataFrame ke file CSV
@@ -332,6 +337,7 @@ def lihat_stok():
     #kalo blum ada fileny
     if not os.path.exists(file_stok):
         print("Belum ada data stok barang.")
+        pause()
         return
     stok()
     
@@ -340,6 +346,7 @@ def pakai_stok():
     header()
     if not os.path.exists(file_stok):
         print("Belum ada data stok barang.")
+        pause()
         return
     
     stok()
@@ -371,8 +378,14 @@ def pakai_stok():
             rekam_pemakaian(nama_barang,jumlah)
             pause()
         else:
-            print(f"Jumlah yang diminta melebihi stok yang tersedia. Stok saat ini: {stok_tersedia}.")
-            pause()
+            pilihan_stok = input(f"Jumlah yang diminta melebihi stok yang tersedia.\nStok saat ini: {stok_tersedia}.\nTekan 1 untuk ke maeketplace.\n")
+            if pilihan_stok == '1':
+                beli_item()
+            else:
+                input('enter untuk kembali')
+                return
+                
+            
     else:
         print("Barang tidak ditemukan.")
         pause()
@@ -393,6 +406,7 @@ def beli_item():
     # Cek apa file sudah ada
     if not os.path.exists(file_marketplace):
         print("Belum ada barang yang dijual.")
+        pause()
         return
     
     marketplace_df = pd.read_csv(file_marketplace)
@@ -405,6 +419,7 @@ def beli_item():
         quantity = int(input("Masukkan Jumlah yang ingin dibeli: "))
     except ValueError:
         print("Jumlah harus berupa angka.")
+        pause()
         return
     
     # Cek apa barang ada di market
