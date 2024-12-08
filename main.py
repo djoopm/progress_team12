@@ -378,7 +378,7 @@ def pakai_stok():
             rekam_pemakaian(nama_barang,jumlah)
             pause()
         else:
-            pilihan_stok = input(f"Jumlah yang diminta melebihi stok yang tersedia.\nStok saat ini: {stok_tersedia}.\nTekan 1 untuk ke maeketplace.\n")
+            pilihan_stok = input(f"Jumlah yang diminta melebihi stok yang tersedia.\nStok saat ini: {stok_tersedia}.\nTekan 1 untuk ke marketplace.\n")
             if pilihan_stok == '1':
                 beli_item()
             else:
