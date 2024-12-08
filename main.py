@@ -65,7 +65,7 @@ def sign_up():
     print("1. Supplier")
     print("2. Admin")
     
-    role_choice = input("Masukkan nomor role (1/2): ")
+    role_choice = input("Masukkan nomor role (1/2): enter untuk keluar.")
     
     role_mapping = {
         '1': 'supplier',
@@ -84,16 +84,17 @@ def sign_up():
             print('Sandi salah, kembali ke login.')
             pause()
             return
-
+    elif role_choice == '':
+        input('Keluar dari dari sign up.')
+        return
+    
     else:
         role = role_mapping.get(role_choice) # buat dapet rolenya dengan key
         if not role:
-            print("Role tidak valid! Silakan pilih antara 1 atau 2.")
-            pause()
+            input('Keluar dari dari sign up.')
             return
 
     
-
     # kalau blum ada
     new_user = pd.DataFrame([[username, password, role]], columns=['Username', 'Password', 'Role'])
     new_user.to_csv(file_user, mode='a', header=not os.path.exists(file_user), index=False)
