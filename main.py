@@ -178,6 +178,7 @@ def supplier_dashboard():
         print("1. Lihat Marketplace")
         print("2. Tambah Barang yang Dijual")
         print("3. Update Barang yang Dijual")
+        print("4. Hapus Barang yang Dijual")
         print("0. Keluar")
         
         choice = input("Pilih menu: ")
@@ -188,6 +189,8 @@ def supplier_dashboard():
             add_item_to_marketplace()
         elif choice == '3':
             update_item()
+        elif choice == '4':
+            hapus_barang()
         elif choice == '0':
             input("Keluar dari dashboard supplier.")
             break
@@ -293,6 +296,34 @@ def update_item():
     # Menyimpan kembali DataFrame ke file CSV
     df.to_csv(file_marketplace, index=False)
     print("Perubahan berhasil disimpan.")
+    pause()
+    
+def hapus_barang():
+    clear()
+    header()
+    print('HAPUS BARANG\n')
+    
+    marketplace()
+
+    nama_barang = input("Nama Barang yang ingin dihapus: ")
+
+    # Membaca data barang dari file CSV
+    if os.path.exists(file_marketplace):
+        data_barang = pd.read_csv(file_marketplace)
+
+        # Mengecek apakah barang ada dalam daftar
+        if nama_barang in data_barang['Nama Barang'].values:
+            # Menghapus barang dari DataFrame
+            data_barang = data_barang[data_barang['Nama Barang'] != nama_barang]
+
+            # Menyimpan kembali DataFrame ke file CSV
+            data_barang.to_csv(file_marketplace, index=False)
+            print("Barang berhasil dihapus!")
+        else:
+            print("Barang tidak ditemukan!")
+    else:
+        print("File data barang tidak ditemukan!")
+    
     pause()
 
 def admin_dashboard():
