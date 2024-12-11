@@ -157,8 +157,7 @@ def ubah_username_password():
         print("Password berhasil diubah.")
     
     elif choice == '0':
-        main()
-        
+        main()  
     else:
         print("Pilihan tidak valid.")
         pause()
@@ -193,7 +192,7 @@ def supplier_dashboard():
             hapus_barang()
         elif choice == '0':
             input("Keluar dari dashboard supplier.")
-            break
+            return
         else:
             print("Pilihan tidak valid.")
             pause()
@@ -218,36 +217,54 @@ def add_item_to_marketplace():
     clear()
     header()
     print('TAMBAH ITEM ke Marketplace\n')
-    nama_barang = input("Nama Barang: ")
-    if nama_barang == '':
-        input('Nama tidak boleh kosong')
-        add_item_to_marketplace()
     
-    try:
-        harga = float(input("Harga: "))
-    except:
-        print('harga hanya boleh berupa angka.')
+    # Normalisasi input nama barang
+    nama_barang = input("Nama Barang: ").strip().lower()
+    if nama_barang == '':
+        print('Nama tidak boleh kosong, kembali ke Dashboard.')
         pause()
         return
 
-    
-    # Cek apakah file blum ada
+    try:
+        harga = float(input("Harga: "))
+    except ValueError:
+        print('Harga hanya boleh berupa angka.')
+        pause()
+        return
+
+    # Cek apakah file belum ada
     if not os.path.exists(file_marketplace):
-        # Jika belum ada, buat DataFrame dengan kolom yang diperlukan
+        # Jika belum ada, buat DataFrame baru
         df = pd.DataFrame(columns=['Nama Barang', 'Harga'])
     else:
+        # Baca file marketplace
         df = pd.read_csv(file_marketplace)
+        # Normalisasi data di kolom Nama Barang
+        df['Nama Barang'] = df['Nama Barang'].str.strip().str.lower()
 
-    # tambah item baru yang diinput ke DataFrame
+    # Debugging: tampilkan isi df untuk memastikan data benar
+    print(f"Data marketplace: {df['Nama Barang'].values}")
+
+    # Cek apakah nama barang sudah ada
+    if nama_barang in df['Nama Barang'].values:
+        print(f"Barang sudah ada di Marketplace.")
+        pause()
+        return
+
+    # Tambahkan item baru ke DataFrame
     new_item = pd.DataFrame([[nama_barang, harga]], columns=['Nama Barang', 'Harga'])
     df = pd.concat([df, new_item], ignore_index=True)
 
     # Simpan kembali DataFrame ke file CSV
-    df.to_csv(file_marketplace, index=False)
+    try:
+        df.to_csv(file_marketplace, index=False)
+        print(f"{nama_barang} berhasil ditambahkan ke Marketplace dengan harga {harga}.")
+    except Exception as e:
+        print(f"Kesalahan menyimpan data: {e}")
 
-    print(f"{nama_barang} berhasil ditambahkan ke Marketplace dengan harga {harga}.")
     pause()
     supplier_dashboard()
+
 
 def update_item():
     clear()
